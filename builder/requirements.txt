@@ -7,3 +7,4 @@ git+https://github.com/m-bain/whisperx.git
 runpod
 cog
 speechbrain==0.5.16
+cryptography<43.0.0
