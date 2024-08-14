@@ -8,6 +8,17 @@ from predict import Predictor, Output
 MODEL = Predictor()
 MODEL.setup()
 
+def cleanup_job_files(job_id, jobs_directory='/jobs'):
+    job_path = os.path.join(jobs_directory, job_id)
+    if os.path.exists(job_path):
+        try:
+            shutil.rmtree(job_path)
+            print(f"Removed job directory: {job_path}")
+        except Exception as e:
+            print(f"Error removing job directory {job_path}: {str(e)}")
+    else:
+        print(f"Job directory not found: {job_path}")
+
 def run(job):
     job_input = job['input']
     
@@ -50,6 +61,7 @@ def run(job):
         
         # Cleanup downloaded files
         rp_cleanup.clean(['input_objects'])
+        cleanup_job_files(job_id)
         
         return output_dict
     except Exception as e:
