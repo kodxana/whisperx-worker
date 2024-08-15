@@ -22,7 +22,7 @@ def cleanup_job_files(job_id, jobs_directory='/jobs'):
 
 def run(job):
     job_input = job['input']
-    
+    job_id = job['id']
     # Input validation
     validated_input = validate(job_input, INPUT_VALIDATIONS)
     if 'errors' in validated_input:
