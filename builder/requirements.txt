@@ -4,6 +4,18 @@ torch~=2.8.0
 torchaudio~=2.8.0
 
 # ---------- main libs ----------
+<<<<<<< HEAD
+whisperx @ git+https://github.com/m-bain/whisperx.git@v3.8.6
+pyannote.audio>=4.0.0
+torchvision~=0.23.0
+torchcodec>=0.6.0,<0.8.0
+ctranslate2>=4.5.0
+faster-whisper>=1.2.0
+transformers>=4.48.0
+
+# ---------- alignment / NLP ----------
+nltk>=3.9.1
+=======
 whisperx @ git+https://github.com/m-bain/whisperx.git@v3.8.1
 pyannote.audio>=4.0.0
 torchcodec>=0.6,<0.8
@@ -13,6 +25,7 @@ transformers>=4.48.0
 
 # ---------- alignment / NLP ----------
 nltk>=3.9.1
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 sentencepiece
 
 # ---------- speaker embedding ----------

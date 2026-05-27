@@ -71,6 +71,30 @@ else:
 MODEL = Predictor()
 MODEL.setup()
 
+DATA_URI_AUDIO_EXTENSIONS = {
+    "audio/wav": ".wav",
+    "audio/x-wav": ".wav",
+    "audio/wave": ".wav",
+    "audio/mpeg": ".mp3",
+    "audio/mp3": ".mp3",
+    "audio/ogg": ".ogg",
+    "audio/flac": ".flac",
+    "audio/x-flac": ".flac",
+    "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/aac": ".aac",
+    "audio/webm": ".webm",
+}
+
+
+def audio_suffix_from_data_uri(audio_input):
+    if not audio_input.startswith("data:") or "," not in audio_input:
+        return ".wav"
+
+    media_type = audio_input[5:audio_input.find(",")].split(";", 1)[0].lower()
+    return DATA_URI_AUDIO_EXTENSIONS.get(media_type, ".wav")
+
+
 def cleanup_job_files(job_id, jobs_directory='/jobs'):
     job_path = os.path.join(jobs_directory, job_id)
     if os.path.exists(job_path):
@@ -81,6 +105,14 @@ def cleanup_job_files(job_id, jobs_directory='/jobs'):
             logger.error(f"Error removing job directory {job_path}: {str(e)}", exc_info=True)
     else:
         logger.debug(f"Job directory not found: {job_path}")
+
+
+def cleanup_worker_state(job_id):
+    try:
+        rp_cleanup.clean(["input_objects"])
+        cleanup_job_files(job_id)
+    except Exception as e:
+        logger.warning(f"Cleanup issue: {e}", exc_info=True)
 
 # --------------------------------------------------------------------
 # main serverless entry-point
@@ -94,9 +126,37 @@ def run(job):
     if "errors" in validated:
         return {"error": validated["errors"]}
 
+<<<<<<< HEAD
+    request_hf_token = job_input.get("huggingface_access_token")
+    if isinstance(request_hf_token, str):
+        request_hf_token = request_hf_token.strip()
+    effective_hf_token = request_hf_token or hf_token
+
     # ------------- 1) resolve audio input (URL or base64) -----------
     audio_input = job_input["audio_file"]
+=======
+    # ------------- 1) resolve audio input (URL or base64) -----------
+    audio_input = job_input["audio_file"]
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
     try:
+<<<<<<< HEAD
+        if "://" in audio_input:
+            # Standard URL — download as before
+            audio_file_path = download_files_from_urls(job_id, [audio_input])[0]
+            logger.debug(f"Audio downloaded → {audio_file_path}")
+        else:
+            # Treat as base64-encoded audio data
+            # Strip optional data-URI prefix (e.g. "data:audio/wav;base64,")
+            audio_suffix = audio_suffix_from_data_uri(audio_input)
+            if "," in audio_input:
+                audio_input = audio_input.split(",", 1)[1]
+            audio_bytes = base64.b64decode(audio_input)
+            os.makedirs(f"/jobs/{job_id}", exist_ok=True)
+            audio_file_path = f"/jobs/{job_id}/audio_input{audio_suffix}"
+            with open(audio_file_path, "wb") as f:
+                f.write(audio_bytes)
+            logger.debug(f"Audio decoded from base64 → {audio_file_path} ({len(audio_bytes)} bytes)")
+=======
         if "://" in audio_input:
             # Standard URL — download as before
             audio_file_path = download_files_from_urls(job_id, [audio_input])[0]
@@ -112,23 +172,37 @@ def run(job):
             with open(audio_file_path, "wb") as f:
                 f.write(audio_bytes)
             logger.debug(f"Audio decoded from base64 → {audio_file_path} ({len(audio_bytes)} bytes)")
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
     except Exception as e:
+<<<<<<< HEAD
+        logger.error("Audio input failed", exc_info=True)
+        cleanup_worker_state(job_id)
+        return {"error": f"audio input: {e}"}
+=======
         logger.error("Audio input failed", exc_info=True)
         return {"error": f"audio input: {e}"}
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 
     # ------------- 2) download speaker profiles (optional) ----------
     speaker_profiles = job_input.get("speaker_samples", [])
+    speaker_verification = job_input.get("speaker_verification", False)
     embeddings = {}
-    if speaker_profiles:
+    if speaker_verification and speaker_profiles:
         try:
             embeddings = load_known_speakers_from_samples(
                 speaker_profiles,
-                huggingface_access_token=hf_token  # or job_input.get("huggingface_access_token")
+                huggingface_access_token=effective_hf_token
             )
             logger.info(f"Enrolled {len(embeddings)} speaker profiles successfully.")
         except Exception as e:
             logger.error("Enrollment failed", exc_info=True)
+<<<<<<< HEAD
             embeddings = {}  # graceful degradation: proceed without profiles
+    elif speaker_profiles:
+        logger.info("speaker_samples provided but speaker_verification is false; skipping speaker enrollment.")
+=======
+            embeddings = {}  # graceful degradation: proceed without profiles
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 
     # ------------- 3) call WhisperX / VAD / diarization -------------
     predict_input = {
@@ -143,7 +217,11 @@ def run(job):
         "vad_offset"               : job_input.get("vad_offset", 0.363),
         "align_output"             : job_input.get("align_output", False),
         "diarization"              : job_input.get("diarization", False),
+<<<<<<< HEAD
+        "huggingface_access_token" : effective_hf_token,
+=======
         "huggingface_access_token" : job_input.get("huggingface_access_token") or hf_token,
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
         "min_speakers"             : job_input.get("min_speakers"),
         "max_speakers"             : job_input.get("max_speakers"),
         "debug"                    : job_input.get("debug", False),
@@ -153,6 +231,7 @@ def run(job):
         result = MODEL.predict(**predict_input)             # <-- heavy job
     except Exception as e:
         logger.error("WhisperX prediction failed", exc_info=True)
+        cleanup_worker_state(job_id)
         return {"error": f"prediction: {e}"}
 
     output_dict = {
@@ -180,12 +259,12 @@ def run(job):
         logger.info("No enrolled embeddings available; skipping speaker identification.")
 
     # 4-Cleanup and return output_dict normally
-    try:
-        rp_cleanup.clean(["input_objects"])
-        cleanup_job_files(job_id)
-    except Exception as e:
-        logger.warning(f"Cleanup issue: {e}", exc_info=True)
+    cleanup_worker_state(job_id)
 
     return output_dict
 
 runpod.serverless.start({"handler": run})
+<<<<<<< HEAD
+
+=======
+>>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
