@@ -142,6 +142,7 @@ class Predictor(BasePredictor):
 
             if language is None and language_detection_min_prob > 0 and audio_duration > 30000:
                 segments_duration_ms = 30000
+                language_detection_max_tries = max(1, language_detection_max_tries)
 
                 language_detection_max_tries = min(
                     language_detection_max_tries,
@@ -273,11 +274,12 @@ def extract_audio_segment(input_file_path, start_time_ms, duration_ms):
     end_time_ms = start_time_ms + duration_ms
     extracted_segment = audio[start_time_ms:end_time_ms]
 
-    file_extension = input_file_path.suffix
+    file_extension = input_file_path.suffix or ".wav"
+    export_format = file_extension.lstrip(".")
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
         temp_file_path = Path(temp_file.name)
-        extracted_segment.export(temp_file_path, format=file_extension.lstrip('.'))
+        extracted_segment.export(temp_file_path, format=export_format)
 
     return temp_file_path
 

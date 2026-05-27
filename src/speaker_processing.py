@@ -22,17 +22,11 @@ load_dotenv(find_dotenv())
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = DEVICE
 
-<<<<<<< HEAD
 _EMBED_MODEL = None   # pyannote Inference
 _EMBED_MODEL_TOKEN = None
 _ECAPA = None         # speechbrain EncoderClassifier
-=======
-_EMBED_MODEL = None   # pyannote Inference
-_ECAPA = None         # speechbrain EncoderClassifier
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 
 
-<<<<<<< HEAD
 def _get_embed_model(huggingface_access_token=None):
     """Return (and cache) the pyannote embedding Inference model."""
     global _EMBED_MODEL, _EMBED_MODEL_TOKEN
@@ -60,34 +54,6 @@ def _get_ecapa():
     return _ECAPA
 
 
-=======
-def _get_embed_model():
-    """Return (and cache) the pyannote embedding Inference model."""
-    global _EMBED_MODEL
-    if _EMBED_MODEL is None:
-        from pyannote.audio import Model, Inference
-        hf_token = os.getenv("HF_TOKEN")
-        raw = Model.from_pretrained("pyannote/embedding", use_auth_token=hf_token)
-        _EMBED_MODEL = Inference(raw, device=DEVICE)
-    return _EMBED_MODEL
-
-
-def _get_ecapa():
-    """Return (and cache) the SpeechBrain ECAPA encoder."""
-    global _ECAPA
-    if _ECAPA is None:
-        try:
-            from speechbrain.inference.classifiers import EncoderClassifier
-        except ImportError:
-            from speechbrain.pretrained import EncoderClassifier
-        _ECAPA = EncoderClassifier.from_hparams(
-            source="speechbrain/spkrec-ecapa-voxceleb",
-            run_opts={"device": device},
-        )
-    return _ECAPA
-
-
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 def spk_embed(wave_16k_mono: np.ndarray) -> np.ndarray:
     """Return 192-D embedding for one mono waveform @16 kHz."""
     wav = torch.tensor(wave_16k_mono).unsqueeze(0).to(device)
@@ -171,11 +137,7 @@ def load_known_speakers_from_samples(speaker_samples, huggingface_access_token=N
     known_embeddings = {}
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     try:
-<<<<<<< HEAD
         model = _get_embed_model(huggingface_access_token)
-=======
-        model = _get_embed_model()
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
     except Exception as e:
         logger.error(f"Failed to load pyannote embedding model: {e}", exc_info=True)
         return {}

@@ -7,7 +7,6 @@ _EMBED = None  # lazy-loaded
 _CACHE = {}    # name → 512-D vector
 
 
-<<<<<<< HEAD
 def _get_embed(huggingface_access_token=None):
     """Return (and cache) the pyannote embedding Inference model."""
     global _EMBED
@@ -19,19 +18,6 @@ def _get_embed(huggingface_access_token=None):
     return _EMBED
 
 
-=======
-def _get_embed():
-    """Return (and cache) the pyannote embedding Inference model."""
-    global _EMBED
-    if _EMBED is None:
-        from pyannote.audio import Model, Inference
-        hf_token = os.environ.get("HF_TOKEN")
-        raw_model = Model.from_pretrained("pyannote/embedding", use_auth_token=hf_token)
-        _EMBED = Inference(raw_model, device=_DEVICE)
-    return _EMBED
-
-
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 # ---------------------------------------------------------------------
 # 1)  Download profile audio (once)  → 512-D embedding  → cache
 # ---------------------------------------------------------------------

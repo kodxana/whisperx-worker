@@ -126,7 +126,6 @@ def run(job):
     if "errors" in validated:
         return {"error": validated["errors"]}
 
-<<<<<<< HEAD
     request_hf_token = job_input.get("huggingface_access_token")
     if isinstance(request_hf_token, str):
         request_hf_token = request_hf_token.strip()
@@ -134,12 +133,7 @@ def run(job):
 
     # ------------- 1) resolve audio input (URL or base64) -----------
     audio_input = job_input["audio_file"]
-=======
-    # ------------- 1) resolve audio input (URL or base64) -----------
-    audio_input = job_input["audio_file"]
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
     try:
-<<<<<<< HEAD
         if "://" in audio_input:
             # Standard URL — download as before
             audio_file_path = download_files_from_urls(job_id, [audio_input])[0]
@@ -156,32 +150,10 @@ def run(job):
             with open(audio_file_path, "wb") as f:
                 f.write(audio_bytes)
             logger.debug(f"Audio decoded from base64 → {audio_file_path} ({len(audio_bytes)} bytes)")
-=======
-        if "://" in audio_input:
-            # Standard URL — download as before
-            audio_file_path = download_files_from_urls(job_id, [audio_input])[0]
-            logger.debug(f"Audio downloaded → {audio_file_path}")
-        else:
-            # Treat as base64-encoded audio data
-            # Strip optional data-URI prefix (e.g. "data:audio/wav;base64,")
-            if "," in audio_input:
-                audio_input = audio_input.split(",", 1)[1]
-            audio_bytes = base64.b64decode(audio_input)
-            os.makedirs(f"/jobs/{job_id}", exist_ok=True)
-            audio_file_path = f"/jobs/{job_id}/audio_input"
-            with open(audio_file_path, "wb") as f:
-                f.write(audio_bytes)
-            logger.debug(f"Audio decoded from base64 → {audio_file_path} ({len(audio_bytes)} bytes)")
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
     except Exception as e:
-<<<<<<< HEAD
         logger.error("Audio input failed", exc_info=True)
         cleanup_worker_state(job_id)
         return {"error": f"audio input: {e}"}
-=======
-        logger.error("Audio input failed", exc_info=True)
-        return {"error": f"audio input: {e}"}
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 
     # ------------- 2) download speaker profiles (optional) ----------
     speaker_profiles = job_input.get("speaker_samples", [])
@@ -196,13 +168,9 @@ def run(job):
             logger.info(f"Enrolled {len(embeddings)} speaker profiles successfully.")
         except Exception as e:
             logger.error("Enrollment failed", exc_info=True)
-<<<<<<< HEAD
             embeddings = {}  # graceful degradation: proceed without profiles
     elif speaker_profiles:
         logger.info("speaker_samples provided but speaker_verification is false; skipping speaker enrollment.")
-=======
-            embeddings = {}  # graceful degradation: proceed without profiles
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
 
     # ------------- 3) call WhisperX / VAD / diarization -------------
     predict_input = {
@@ -217,11 +185,7 @@ def run(job):
         "vad_offset"               : job_input.get("vad_offset", 0.363),
         "align_output"             : job_input.get("align_output", False),
         "diarization"              : job_input.get("diarization", False),
-<<<<<<< HEAD
         "huggingface_access_token" : effective_hf_token,
-=======
-        "huggingface_access_token" : job_input.get("huggingface_access_token") or hf_token,
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
         "min_speakers"             : job_input.get("min_speakers"),
         "max_speakers"             : job_input.get("max_speakers"),
         "debug"                    : job_input.get("debug", False),
@@ -264,7 +228,3 @@ def run(job):
     return output_dict
 
 runpod.serverless.start({"handler": run})
-<<<<<<< HEAD
-
-=======
->>>>>>> 3b2a351d7eb554ca027ae6c031e553cd06563fe6
