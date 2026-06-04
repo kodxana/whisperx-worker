@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This repository has moved to https://github.com/kodxana/whisperx-worker_v2 and is now archived.
+
 [![Runpod](https://api.runpod.io/badge/kodxana/whisperx-worker)](https://www.runpod.io/console/hub/kodxana/whisperx-worker)
 
 # WhisperX Worker for Runpod
